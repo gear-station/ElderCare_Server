@@ -1,0 +1,46 @@
+buildscript {
+
+    ext {
+        springBootVersion = '2.1.4.RELEASE'
+    }
+
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+allprojects {
+    version '1.0.1'
+}
+
+group 'com.gearstation'
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: "io.spring.dependency-management"
+
+    sourceCompatibility = '12'
+
+//    sourceCompatibility = 1.8
+//    targetCompatibility = 1.8
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies{
+        testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+        implementation 'io.vavr:vavr:0.10.0'
+        annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
+        compileOnly 'org.projectlombok:lombok:1.18.8'
+        annotationProcessor 'org.projectlombok:lombok:1.18.8'
+    }
+}

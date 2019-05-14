@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+}
+
+group 'com.gearstation.eldercare'
+
+dependencies {
+}
+
+apply plugin: 'org.springframework.boot'
+
+dependencies {
+    compile project(':authorization')
+    compile("org.springframework.boot:spring-boot-starter:${springBootVersion}")
+    compile("org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}")
+    compile("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
+}

@@ -1,0 +1,10 @@
+plugins {
+    id 'java'
+}
+
+group 'com.gearstation.eldercare'
+
+dependencies {
+    compile "org.springframework.boot:spring-boot-starter-data-redis:${springBootVersion}"
+    compile "redis.clients:jedis:3.0.1"
+}

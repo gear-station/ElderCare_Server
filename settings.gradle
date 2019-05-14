@@ -1,0 +1,6 @@
+rootProject.name = 'eldercare'
+include 'gateway'
+include 'authorization'
+include 'cache'
+include 'user'
+

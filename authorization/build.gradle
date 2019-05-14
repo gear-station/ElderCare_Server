@@ -1,0 +1,8 @@
+plugins {
+    id 'java'
+}
+
+group 'com.gearstation.eldercare'
+
+dependencies {
+}
