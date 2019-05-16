@@ -161,19 +161,20 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 为给定 key 设置生存时间，当 key 过期时(生存时间为 0 )，它会被自动删除。
-     * </p>
+     * Description: Give expire time to key from specified DB, and release the connection <br>
+     * CreateTime 2019-05-12 23:45 <br>
      *
-     * @param key
-     * @param value 过期时间，单位：秒
-     * @return 成功返回1 如果存在 和 发生异常 返回 0
-     */
-    public Long expire(String key, int value, int indexdb) {
+     * @param key <br>
+     * @param time expire time, unit is second <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return 1 if success, or 0 if fail <br>
+     * @author packy <br>
+     **/
+    public Long expire(String key, int time, int dbIndex) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
-            jedis.select(indexdb);
+            jedis.select(dbIndex);
             return jedis.expire(key, value);
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -192,14 +193,22 @@ public class RedisUtils {
      * @return 当 key 不存在时，返回 -2 。当 key 存在但没有设置剩余生存时间时，返回 -1 。否则，以秒为单位，返回 key
      * 的剩余生存时间。 发生异常 返回 0
      */
-    public Long ttl(String key, int indexdb) {
+    /**
+     * Description: Return expire time for key from specified DB, and release the connection <br>
+     * CreateTime 2019-05-16 18:45 <br>
+     *
+     * @param key <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return 1 if success, or 0 if fail <br>
+     * @author packy <br>
+     **/
+    public Long ttl(String key, int dbIndex) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
             jedis.select(indexdb);
             return jedis.ttl(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
             return 0L;
         } finally {
