@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.util.List;
+
 /**
  * Description: Redis tools <br>
  * Copyright © 2019 www.gear-station.com <br>
@@ -26,7 +28,7 @@ public class RedisUtils {
      * Description: Retrieve value by key from specified DB, and release the connection <br>
      * CreateTime 2019-05-12 23:45 <br>
      *
-     * @param key <br>
+     * @param key     <br>
      * @param dbIndex DB index from 0 to 15 <br>
      * @return Return value of input key if success, or null if fail <br>
      * @author packy <br>
@@ -50,8 +52,8 @@ public class RedisUtils {
      * Description: Add value to specified DB, and release the connection <br>
      * CreateTime 2019-05-14 23:45 <br>
      *
-     * @param key <br>
-     * @param value <br>
+     * @param key     <br>
+     * @param value   <br>
      * @param dbIndex DB index from 0 to 15 <br>
      * @return Return OK if success, or NG if fail <br>
      * @author packy <br>
@@ -74,7 +76,7 @@ public class RedisUtils {
      * Description: Remove key and value from specified DB <br>
      * CreateTime 2019-05-14 23:45 <br>
      *
-     * @param keys <br>
+     * @param keys    <br>
      * @param dbIndex DB index from 0 to 15 <br>
      * @return Return OK if success, or NG if fail <br>
      * @author packy <br>
@@ -97,8 +99,8 @@ public class RedisUtils {
      * Description: Append value by key from specified DB <br>
      * CreateTime 2019-05-14 23:45 <br>
      *
-     * @param key <br>
-     * @param value <br>
+     * @param key     <br>
+     * @param value   <br>
      * @param dbIndex DB index from 0 to 15 <br>
      * @return Return length of value if success, or 0L if fail <br>
      * @author packy <br>
@@ -121,7 +123,7 @@ public class RedisUtils {
      * Description: Check if key is existing <br>
      * CreateTime 2019-05-14 23:45 <br>
      *
-     * @param key <br>
+     * @param key     <br>
      * @param dbIndex DB index from 0 to 15 <br>
      * @return Return length of value if success, or 0L if fail <br>
      * @author packy <br>
@@ -164,8 +166,8 @@ public class RedisUtils {
      * Description: Give expire time to key from specified DB, and release the connection <br>
      * CreateTime 2019-05-12 23:45 <br>
      *
-     * @param key <br>
-     * @param time expire time, unit is second <br>
+     * @param key     <br>
+     * @param time    expire time, unit is second <br>
      * @param dbIndex DB index from 0 to 15 <br>
      * @return Return 1 if success, or 0 if fail <br>
      * @author packy <br>
@@ -188,7 +190,7 @@ public class RedisUtils {
      * Description: Return expire time for key from specified DB, and release the connection <br>
      * CreateTime 2019-05-16 18:45 <br>
      *
-     * @param key <br>
+     * @param key     <br>
      * @param dbIndex DB index from 0 to 15 <br>
      * @return Return -2 if key doesn't exist, -1 if key exists but has no expire time, 0 when exception occurs. Otherwise, return expire time with sec unit <br>
      * @author packy <br>
@@ -211,7 +213,7 @@ public class RedisUtils {
      * Description: Persist a specified key, and release the connection <br>
      * CreateTime 2019-05-20 16:45 <br>
      *
-     * @param key <br>
+     * @param key     <br>
      * @param dbIndex DB index from 0 to 15 <br>
      * @return Return 1 if success, 0 if key doesn't exist or has no expire time, -1 when exception occurs. <br>
      * @author packy <br>
@@ -231,22 +233,23 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 新增key,并将 key 的生存时间 (以秒为单位)
-     * </p>
+     * Description: Add a key with expire time. If key exists, will be overwritten <br>
+     * CreateTime 2019-05-20 23:45 <br>
      *
-     * @param key
-     * @param seconds 生存时间 单位：秒
-     * @param value
-     * @return 设置成功时返回 OK 。当 seconds 参数不合法时，返回一个错误。
-     */
-    public String setex(String key, int seconds, String value) {
+     * @param key     <br>
+     * @param value   <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @param seconds Expire time, unit: second
+     * @return Return OK if success, or null if fail. <br>
+     * @author packy <br>
+     **/
+    public String setex(String key, String value, int seconds, int dbIndex) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             return jedis.setex(key, seconds, value);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -255,21 +258,22 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 设置key value,如果key已经存在则返回0,nx==> not exist
-     * </p>
+     * Description: Add a new key, if it exists, do nothing <br>
+     * CreateTime 2019-05-20 23:45 <br>
      *
-     * @param key
-     * @param value
-     * @return 成功返回1 如果存在 和 发生异常 返回 0
-     */
-    public Long setnx(String key, String value) {
+     * @param key     <br>
+     * @param value   <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return 1 if success, or 0 if key exists or exception. <br>
+     * @author packy <br>
+     **/
+    public Long setnx(String key, String value, int dbIndex) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             return jedis.setnx(key, value);
         } catch (Exception e) {
-
             log.error(e.getMessage());
             return 0L;
         } finally {
@@ -278,24 +282,22 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 将给定 key 的值设为 value ，并返回 key 的旧值(old value)。
-     * </p>
-     * <p>
-     * 当 key 存在但不是字符串类型时，返回一个错误。
-     * </p>
+     * Description: Set a new value to specified key and return old value <br>
+     * CreateTime 2019-05-20 23:45 <br>
      *
-     * @param key
-     * @param value
-     * @return 返回给定 key 的旧值。当 key 没有旧值时，也即是， key 不存在时，返回 nil
-     */
-    public String getSet(String key, String value) {
+     * @param key     <br>
+     * @param value   <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return old value, or nil if key doesn't exist <br>
+     * @author packy <br>
+     **/
+    public String getSet(String key, String value, int dbIndex) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             return jedis.getSet(key, value);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -304,68 +306,23 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 设置key value并制定这个键值的有效期
-     * </p>
+     * Description: Replace string value from offset position for specified key <br>
+     * CreateTime 2019-05-20 23:45 <br>
      *
-     * @param key
-     * @param value
-     * @param seconds 单位:秒
-     * @return 成功返回OK 失败和异常返回null
-     */
-    public String setex(String key, String value, int seconds) {
-        Jedis jedis = null;
-        String res = null;
-        try {
-            jedis = jedisPool.getResource();
-            res = jedis.setex(key, seconds, value);
-        } catch (Exception e) {
-
-            log.error(e.getMessage());
-        } finally {
-            returnResource(jedisPool, jedis);
-        }
-        return res;
-    }
-
-    /**
-     * <p>
-     * 通过key 和offset 从指定的位置开始将原先value替换
-     * </p>
-     * <p>
-     * 下标从0开始,offset表示从offset下标开始替换
-     * </p>
-     * <p>
-     * 如果替换的字符串长度过小则会这样
-     * </p>
-     * <p>
-     * example:
-     * </p>
-     * <p>
-     * value : bigsea@zto.cn
-     * </p>
-     * <p>
-     * str : abc
-     * </p>
-     * <P>
-     * 从下标7开始替换 则结果为
-     * </p>
-     * <p>
-     * RES : bigsea.abc.cn
-     * </p>
-     *
-     * @param key
-     * @param str
-     * @param offset 下标位置
-     * @return 返回替换后 value 的长度
-     */
-    public Long setrange(String key, String str, int offset) {
+     * @param key     <br>
+     * @param str     <br>
+     * @param offset  Start index<br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return length of string after replacement, or 0 if fail <br>
+     * @author packy <br>
+     **/
+    public Long setRange(String key, String str, int offset, int dbIndex) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             return jedis.setrange(key, offset, str);
         } catch (Exception e) {
-
             log.error(e.getMessage());
             return 0L;
         } finally {
@@ -374,21 +331,22 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 通过批量的key获取批量的value
-     * </p>
+     * Description: Get values by keys <br>
+     * CreateTime 2019-05-20 23:45 <br>
      *
-     * @param keys string数组 也可以是一个key
-     * @return 成功返回value的集合, 失败返回null的集合 ,异常返回空
-     */
-    public List<String> mget(String... keys) {
+     * @param keys    String array or a single key <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return value list of specified keys <br>
+     * @author packy <br>
+     **/
+    public List<String> mget(int dbIndex, String... keys) {
         Jedis jedis = null;
         List<String> values = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             values = jedis.mget(keys);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -397,27 +355,23 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 批量的设置key:value,可以一个
-     * </p>
-     * <p>
-     * example:
-     * </p>
-     * <p>
-     * obj.mset(new String[]{"key2","value1","key2","value2"})
-     * </p>
+     * Description: Add new key-values at same time <br>
+     * CreateTime 2019-05-20 23:45 <br>
+     * Example obj.mset(new String[]{"key2","value1","key2","value2"})
      *
-     * @param keysvalues
-     * @return 成功返回OK 失败 异常 返回 null
-     */
-    public String mset(String... keysvalues) {
+     * @param keysvalues key-values <br>
+     * @param dbIndex    DB index from 0 to 15 <br>
+     * @return Return OK if success, or null if fail <br>
+     * @author packy <br>
+     **/
+    public String mset(int dbIndex, String... keysvalues) {
         Jedis jedis = null;
         String res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.mset(keysvalues);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -426,27 +380,23 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 批量的设置key:value,可以一个,如果key已经存在则会失败,操作会回滚
-     * </p>
-     * <p>
-     * example:
-     * </p>
-     * <p>
-     * obj.msetnx(new String[]{"key2","value1","key2","value2"})
-     * </p>
+     * Description: Add new key-values at same time if key doesn't exist. When one key is duplicated, whole operation will roll back <br>
+     * CreateTime 2019-05-20 23:45 <br>
+     * Example obj.msetnx(new String[]{"key2","value1","key2","value2"})
      *
-     * @param keysvalues
-     * @return 成功返回1 失败返回0
-     */
-    public Long msetnx(String... keysvalues) {
+     * @param keysvalues key-values <br>
+     * @param dbIndex    DB index from 0 to 15 <br>
+     * @return Return 1 if success, or 0 if fail <br>
+     * @author packy <br>
+     **/
+    public Long msetnx(int dbIndex, String... keysvalues) {
         Jedis jedis = null;
         Long res = 0L;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.msetnx(keysvalues);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -455,47 +405,24 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 设置key的值,并返回一个旧值
-     * </p>
+     * Description: Get sub-string value for specified key <br>
+     * CreateTime 2019-05-20 23:45 <br>
      *
-     * @param key
-     * @param value
-     * @return 旧值 如果key不存在 则返回null
-     */
-    public String getset(String key, String value) {
+     * @param key         <br>
+     * @param startOffset Start index, if it is negative, that means start from right <br>
+     * @param endOffset   End index<br>
+     * @param dbIndex     DB index from 0 to 15 <br>
+     * @return Return null if key doesn't exist <br>
+     * @author packy <br>
+     **/
+    public String getrange(String key, int startOffset, int endOffset, int dbIndex) {
         Jedis jedis = null;
         String res = null;
         try {
             jedis = jedisPool.getResource();
-            res = jedis.getSet(key, value);
-        } catch (Exception e) {
-
-            log.error(e.getMessage());
-        } finally {
-            returnResource(jedisPool, jedis);
-        }
-        return res;
-    }
-
-    /**
-     * <p>
-     * 通过下标 和key 获取指定下标位置的 value
-     * </p>
-     *
-     * @param key
-     * @param startOffset 开始位置 从0 开始 负数表示从右边开始截取
-     * @param endOffset
-     * @return 如果没有返回null
-     */
-    public String getrange(String key, int startOffset, int endOffset) {
-        Jedis jedis = null;
-        String res = null;
-        try {
-            jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.getrange(key, startOffset, endOffset);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -504,21 +431,22 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 通过key 对value进行加值+1操作,当value不是int类型时会返回错误,当key不存在是则value为1
-     * </p>
+     * Description: Increase value by 1, exception occurs if value isn't int  <br>
+     * CreateTime 2019-05-20 23:45 <br>
      *
-     * @param key
-     * @return 加值后的结果
-     */
-    public Long incr(String key) {
+     * @param key     <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return increased value or 1 if key doesn't exist <br>
+     * @author packy <br>
+     **/
+    public Long incr(String key, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.incr(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
