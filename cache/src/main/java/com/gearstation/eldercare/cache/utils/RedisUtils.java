@@ -185,28 +185,19 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 以秒为单位，返回给定 key 的剩余生存时间
-     * </p>
-     *
-     * @param key
-     * @return 当 key 不存在时，返回 -2 。当 key 存在但没有设置剩余生存时间时，返回 -1 。否则，以秒为单位，返回 key
-     * 的剩余生存时间。 发生异常 返回 0
-     */
-    /**
      * Description: Return expire time for key from specified DB, and release the connection <br>
      * CreateTime 2019-05-16 18:45 <br>
      *
      * @param key <br>
      * @param dbIndex DB index from 0 to 15 <br>
-     * @return Return 1 if success, or 0 if fail <br>
+     * @return Return -2 if key doesn't exist, -1 if key exists but has no expire time, 0 when exception occurs. Otherwise, return expire time with sec unit <br>
      * @author packy <br>
      **/
     public Long ttl(String key, int dbIndex) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
-            jedis.select(indexdb);
+            jedis.select(dbIndex);
             return jedis.ttl(key);
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -217,20 +208,21 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 移除给定 key 的生存时间，将这个 key 从『易失的』(带生存时间 key )转换成『持久的』(一个不带生存时间、永不过期的 key )
-     * </p>
+     * Description: Persist a specified key, and release the connection <br>
+     * CreateTime 2019-05-20 16:45 <br>
      *
-     * @param key
-     * @return 当生存时间移除成功时，返回 1 .如果 key 不存在或 key 没有设置生存时间，返回 0 ， 发生异常 返回 -1
-     */
-    public Long persist(String key) {
+     * @param key <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return 1 if success, 0 if key doesn't exist or has no expire time, -1 when exception occurs. <br>
+     * @author packy <br>
+     **/
+    public Long persist(String key, int dbIndex) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             return jedis.persist(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
             return -1L;
         } finally {
