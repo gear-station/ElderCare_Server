@@ -455,22 +455,23 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 通过key给指定的value加值,如果key不存在,则这是value为该值
-     * </p>
+     * Description: Increase value by specified value, exception occurs if value isn't int  <br>
+     * CreateTime 2019-05-20 23:45 <br>
      *
-     * @param key
-     * @param integer
-     * @return
-     */
-    public Long incrBy(String key, Long integer) {
+     * @param key     <br>
+     * @param increment     <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return increased value or 1 if key doesn't exist <br>
+     * @author packy <br>
+     **/
+    public Long incrBy(String key, Long increment, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.incrBy(key, integer);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -479,21 +480,22 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 对key的值做减减操作,如果key不存在,则设置key为-1
-     * </p>
+     * Description: Decrease value by 1, exception occurs if value isn't int  <br>
+     * CreateTime 2019-05-20 23:45 <br>
      *
-     * @param key
-     * @return
-     */
-    public Long decr(String key) {
+     * @param key     <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return increased value or -1 if key doesn't exist <br>
+     * @author packy <br>
+     **/
+    public Long decr(String key, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.decr(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -502,22 +504,23 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 减去指定的值
-     * </p>
+     * Description: Decrease value by specified step value, exception occurs if value isn't int  <br>
+     * CreateTime 2019-05-22 15:45 <br>
      *
-     * @param key
-     * @param integer
-     * @return
-     */
-    public Long decrBy(String key, Long integer) {
+     * @param key     <br>
+     * @param decrement     <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return decreased value or 1 if key doesn't exist <br>
+     * @author packy <br>
+     **/
+    public Long decrBy(String key, Long decrement, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
-            res = jedis.decrBy(key, integer);
+            jedis.select(dbIndex);
+            res = jedis.decrBy(key, decrement);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -526,21 +529,22 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 通过key获取value值的长度
-     * </p>
+     * Description: Get length of specified key  <br>
+     * CreateTime 2019-05-22 15:45 <br>
      *
-     * @param key
-     * @return 失败返回null
-     */
-    public Long serlen(String key) {
+     * @param key     <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return null if failed <br>
+     * @author packy <br>
+     **/
+    public Long serlen(String key, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.strlen(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -549,23 +553,24 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 通过key给field设置指定的值,如果key不存在,则先创建
-     * </p>
+     * Description: Set a field-value map for a specified key. If the map doesn't exist, it will be create automatically <br>
+     * CreateTime 2019-05-22 15:45 <br>
      *
-     * @param key
-     * @param field 字段
-     * @param value
-     * @return 如果存在返回0 异常返回null
-     */
-    public Long hset(String key, String field, String value) {
+     * @param key     <br>
+     * @param field Map key     <br>
+     * @param value Map value     <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return 0 if map doesn't exist, 1 if value is overwritten by new value, null if failed <br>
+     * @author packy <br>
+     **/
+    public Long hset(String key, String field, String value, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.hset(key, field, value);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -574,16 +579,18 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 通过key给field设置指定的值,如果key不存在则先创建,如果field已经存在,返回0
-     * </p>
+     * Description: Set a field-value map for a specified key. If the map doesn't exist, it will be create automatically. <br>
+     * If the value is existing, operation will be cancelled <br>
+     * CreateTime 2019-05-22 15:45 <br>
      *
-     * @param key
-     * @param field
-     * @param value
-     * @return
-     */
-    public Long hsetnx(String key, String field, String value) {
+     * @param key     <br>
+     * @param field Map key     <br>
+     * @param value Map value     <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return 0 if value exists, 1 if success <br>
+     * @author packy <br>
+     **/
+    public Long hsetnx(String key, String field, String value, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
@@ -599,23 +606,25 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 通过key同时设置 hash的多个field
-     * </p>
+     * Description: Muilt-Set a field-value map for a specified key. If the map doesn't exist, it will be create automatically. <br>
+     * If the value is existing, operation will be cancelled <br>
+     * CreateTime 2019-05-22 15:45 <br>
      *
-     * @param key
-     * @param hash
-     * @return 返回OK 异常返回null
-     */
-    public String hmset(String key, Map<String, String> hash, int indexdb) {
+     * @param key     <br>
+     * @param hash       <br>
+     * @param value Map value     <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return OK if success <br>
+     * @author packy <br>
+     **/
+    public String hmset(String key, Map<String, String> hash, int dbIndex) {
         Jedis jedis = null;
         String res = null;
         try {
             jedis = jedisPool.getResource();
-            jedis.select(indexdb);
+            jedis.select(dbIndex);
             res = jedis.hmset(key, hash);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -624,22 +633,23 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 通过key 和 field 获取指定的 value
-     * </p>
+     * Description: Get value of field for specified key <br>
+     * CreateTime 2019-05-22 15:45 <br>
      *
-     * @param key
-     * @param field
-     * @return 没有返回null
-     */
-    public String hget(String key, String field) {
+     * @param key     <br>
+     * @param field Map key      <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return nil if hashmap or field doesn't exist <br>
+     * @author packy <br>
+     **/
+    public String hget(String key, String field, int dbIndex) {
         Jedis jedis = null;
         String res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.hget(key, field);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -648,23 +658,23 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 通过key 和 fields 获取指定的value 如果没有对应的value则返回null
-     * </p>
+     * Description: Multi-Get value of field for specified key <br>
+     * CreateTime 2019-05-22 15:45 <br>
      *
-     * @param key
-     * @param fields 可以使 一个String 也可以是 String数组
-     * @return
-     */
-    public List<String> hmget(String key, int indexdb, String... fields) {
+     * @param key     <br>
+     * @param fields Map keys      <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return nil if hashmap or field doesn't exist <br>
+     * @author packy <br>
+     **/
+    public List<String> hmget(String key, int dbIndex, String... fields) {
         Jedis jedis = null;
         List<String> res = null;
         try {
             jedis = jedisPool.getResource();
-            jedis.select(indexdb);
+            jedis.select(dbIndex);
             res = jedis.hmget(key, fields);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -673,23 +683,24 @@ public class RedisUtils {
     }
 
     /**
-     * <p>
-     * 通过key给指定的field的value加上给定的值
-     * </p>
+     * Description: Increase value of field by specified increment <br>
+     * CreateTime 2019-05-22 15:45 <br>
      *
-     * @param key
-     * @param field
-     * @param value
-     * @return
-     */
-    public Long hincrby(String key, String field, Long value) {
+     * @param key     <br>
+     * @param increment <br>
+     * @param fields Map keys      <br>
+     * @param dbIndex DB index from 0 to 15 <br>
+     * @return Return increased value <br>
+     * @author packy <br>
+     **/
+    public Long hincrby(String key, String field, Long increment, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
-            res = jedis.hincrBy(key, field, value);
+            jedis.select(dbIndex);
+            res = jedis.hincrBy(key, field, increment);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -706,14 +717,14 @@ public class RedisUtils {
      * @param field
      * @return
      */
-    public Boolean hexists(String key, String field) {
+    public Boolean hexists(String key, String field, int dbIndex) {
         Jedis jedis = null;
         Boolean res = false;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.hexists(key, field);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -729,14 +740,14 @@ public class RedisUtils {
      * @param key
      * @return
      */
-    public Long hlen(String key) {
+    public Long hlen(String key, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.hlen(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -754,14 +765,14 @@ public class RedisUtils {
      * @param fields 可以是 一个 field 也可以是 一个数组
      * @return
      */
-    public Long hdel(String key, String... fields) {
+    public Long hdel(String key, int dbIndex, String... fields) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.hdel(key, fields);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -777,14 +788,14 @@ public class RedisUtils {
      * @param key
      * @return
      */
-    public Set<String> hkeys(String key) {
+    public Set<String> hkeys(String key, int dbIndex) {
         Jedis jedis = null;
         Set<String> res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.hkeys(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -800,14 +811,14 @@ public class RedisUtils {
      * @param key
      * @return
      */
-    public List<String> hvals(String key) {
+    public List<String> hvals(String key, int dbIndex) {
         Jedis jedis = null;
         List<String> res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.hvals(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -823,12 +834,12 @@ public class RedisUtils {
      * @param key
      * @return
      */
-    public Map<String, String> hgetall(String key, int indexdb) {
+    public Map<String, String> hgetall(String key, int dbIndex) {
         Jedis jedis = null;
         Map<String, String> res = null;
         try {
             jedis = jedisPool.getResource();
-            jedis.select(indexdb);
+            jedis.select(dbIndex);
             res = jedis.hgetAll(key);
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -847,15 +858,14 @@ public class RedisUtils {
      * @param strs 可以使一个string 也可以使string数组
      * @return 返回list的value个数
      */
-    public Long lpush(int indexdb, String key, String... strs) {
+    public Long lpush(String key, int dbIndex, String... strs) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
-            jedis.select(indexdb);
+            jedis.select(dbIndex);
             res = jedis.lpush(key, strs);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -872,14 +882,14 @@ public class RedisUtils {
      * @param strs 可以使一个string 也可以使string数组
      * @return 返回list的value个数
      */
-    public Long rpush(String key, String... strs) {
+    public Long rpush(String key, int dbIndex, String... strs) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.rpush(key, strs);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -899,14 +909,14 @@ public class RedisUtils {
      * @return
      */
     public Long linsert(String key, LIST_POSITION where, String pivot,
-                        String value) {
+                        String value, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.linsert(key, where, pivot, value);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -927,14 +937,14 @@ public class RedisUtils {
      * @param value
      * @return 成功返回OK
      */
-    public String lset(String key, Long index, String value) {
+    public String lset(String key, Long index, String value, int dbIndex) {
         Jedis jedis = null;
         String res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.lset(key, index, value);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -952,14 +962,14 @@ public class RedisUtils {
      * @param value
      * @return 返回被删除的个数
      */
-    public Long lrem(String key, long count, String value) {
+    public Long lrem(String key, long count, String value, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.lrem(key, count, value);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -977,14 +987,14 @@ public class RedisUtils {
      * @param end
      * @return 成功返回OK
      */
-    public String ltrim(String key, long start, long end) {
+    public String ltrim(String key, long start, long end, int dbIndex) {
         Jedis jedis = null;
         String res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.ltrim(key, start, end);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1000,14 +1010,14 @@ public class RedisUtils {
      * @param key
      * @return
      */
-    synchronized public String lpop(String key) {
+    synchronized public String lpop(String key, int dbIndex) {
         Jedis jedis = null;
         String res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.lpop(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1023,15 +1033,14 @@ public class RedisUtils {
      * @param key
      * @return
      */
-    synchronized public String rpop(String key, int indexdb) {
+    synchronized public String rpop(String key, int dbIndex) {
         Jedis jedis = null;
         String res = null;
         try {
             jedis = jedisPool.getResource();
-            jedis.select(indexdb);
+            jedis.select(dbIndex);
             res = jedis.rpop(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1051,15 +1060,14 @@ public class RedisUtils {
      * @param dstkey
      * @return
      */
-    public String rpoplpush(String srckey, String dstkey, int indexdb) {
+    public String rpoplpush(String srckey, String dstkey, int dbIndex) {
         Jedis jedis = null;
         String res = null;
         try {
             jedis = jedisPool.getResource();
-            jedis.select(indexdb);
+            jedis.select(dbIndex);
             res = jedis.rpoplpush(srckey, dstkey);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1076,14 +1084,14 @@ public class RedisUtils {
      * @param index
      * @return 如果没有返回null
      */
-    public String lindex(String key, long index) {
+    public String lindex(String key, long index, int dbIndex) {
         Jedis jedis = null;
         String res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.lindex(key, index);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1099,14 +1107,14 @@ public class RedisUtils {
      * @param key
      * @return
      */
-    public Long llen(String key) {
+    public Long llen(String key, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.llen(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1127,7 +1135,7 @@ public class RedisUtils {
      * @param end
      * @return
      */
-    public List<String> lrange(String key, long start, long end, int indexdb) {
+    public List<String> lrange(String key, long start, long end, int dbIndex) {
         Jedis jedis = null;
         List<String> res = null;
         try {
@@ -1135,7 +1143,6 @@ public class RedisUtils {
             jedis.select(indexdb);
             res = jedis.lrange(key, start, end);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1153,13 +1160,13 @@ public class RedisUtils {
      * @param value
      * @return 操作成功返回 ok ，否则返回错误信息
      */
-    public String lset(String key, long index, String value) {
+    public String lset(String key, long index, String value, int dbIndex) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             return jedis.lset(key, index, value);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1176,13 +1183,13 @@ public class RedisUtils {
      * @param sortingParameters
      * @return 返回列表形式的排序结果
      */
-    public List<String> sort(String key, SortingParams sortingParameters) {
+    public List<String> sort(String key, SortingParams sortingParameters, int dbIndex) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             return jedis.sort(key, sortingParameters);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1198,13 +1205,13 @@ public class RedisUtils {
      * @param key
      * @return 返回列表形式的排序结果
      */
-    public List<String> sort(String key) {
+    public List<String> sort(String key, int dbIndex) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             return jedis.sort(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1221,14 +1228,14 @@ public class RedisUtils {
      * @param members 可以是一个String 也可以是一个String数组
      * @return 添加成功的个数
      */
-    public Long sadd(String key, String... members) {
+    public Long sadd(String key, int dbIndex, String... members) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.sadd(key, members);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1245,14 +1252,14 @@ public class RedisUtils {
      * @param members 可以是一个String 也可以是一个String数组
      * @return 删除的个数
      */
-    public Long srem(String key, String... members) {
+    public Long srem(String key, int dbIndex, String... members) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.srem(key, members);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1268,14 +1275,14 @@ public class RedisUtils {
      * @param key
      * @return
      */
-    public String spop(String key) {
+    public String spop(String key, int dbIndex) {
         Jedis jedis = null;
         String res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.spop(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1294,14 +1301,14 @@ public class RedisUtils {
      * @param keys 可以使一个string 则返回set中所有的value 也可以是string数组
      * @return
      */
-    public Set<String> sdiff(String... keys) {
+    public Set<String> sdiff(int dbIndex, String... keys) {
         Jedis jedis = null;
         Set<String> res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.sdiff(keys);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1321,14 +1328,14 @@ public class RedisUtils {
      * @param keys   可以使一个string 则返回set中所有的value 也可以是string数组
      * @return
      */
-    public Long sdiffstore(String dstkey, String... keys) {
+    public Long sdiffstore(String dstkey, int dbIndex, String... keys) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.sdiffstore(dstkey, keys);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1344,14 +1351,14 @@ public class RedisUtils {
      * @param keys 可以使一个string 也可以是一个string数组
      * @return
      */
-    public Set<String> sinter(String... keys) {
+    public Set<String> sinter(int dbIndex, String... keys) {
         Jedis jedis = null;
         Set<String> res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.sinter(keys);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1368,14 +1375,14 @@ public class RedisUtils {
      * @param keys   可以使一个string 也可以是一个string数组
      * @return
      */
-    public Long sinterstore(String dstkey, String... keys) {
+    public Long sinterstore(String dstkey, int dbIndex, String... keys) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.sinterstore(dstkey, keys);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1391,14 +1398,14 @@ public class RedisUtils {
      * @param keys 可以使一个string 也可以是一个string数组
      * @return
      */
-    public Set<String> sunion(String... keys) {
+    public Set<String> sunion(int dbIndex, String... keys) {
         Jedis jedis = null;
         Set<String> res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.sunion(keys);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1415,14 +1422,14 @@ public class RedisUtils {
      * @param keys   可以使一个string 也可以是一个string数组
      * @return
      */
-    public Long sunionstore(String dstkey, String... keys) {
+    public Long sunionstore(String dstkey, int dbIndex, String... keys) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.sunionstore(dstkey, keys);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1440,14 +1447,14 @@ public class RedisUtils {
      * @param member set中的value
      * @return
      */
-    public Long smove(String srckey, String dstkey, String member) {
+    public Long smove(String srckey, String dstkey, String member, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.smove(srckey, dstkey, member);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1463,14 +1470,14 @@ public class RedisUtils {
      * @param key
      * @return
      */
-    public Long scard(String key) {
+    public Long scard(String key, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.scard(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1487,14 +1494,14 @@ public class RedisUtils {
      * @param member
      * @return
      */
-    public Boolean sismember(String key, String member) {
+    public Boolean sismember(String key, String member, int dbIndex) {
         Jedis jedis = null;
         Boolean res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.sismember(key, member);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1510,14 +1517,14 @@ public class RedisUtils {
      * @param key
      * @return
      */
-    public String srandmember(String key) {
+    public String srandmember(String key, int dbIndex) {
         Jedis jedis = null;
         String res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.srandmember(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1533,14 +1540,14 @@ public class RedisUtils {
      * @param key
      * @return
      */
-    public Set<String> smembers(String key) {
+    public Set<String> smembers(String key, int dbIndex) {
         Jedis jedis = null;
         Set<String> res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.smembers(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1561,14 +1568,14 @@ public class RedisUtils {
      * @param member
      * @return
      */
-    public Long zadd(String key, double score, String member) {
+    public Long zadd(String key, double score, String member, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.zadd(key, score, member);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1586,13 +1593,13 @@ public class RedisUtils {
      * @param max
      * @return 指定区间内的有序集成员的列表。
      */
-    public Set<String> zrange(String key, long min, long max) {
+    public Set<String> zrange(String key, long min, long max, int dbIndex) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             return jedis.zrange(key, min, max);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1610,13 +1617,13 @@ public class RedisUtils {
      * @param max
      * @return 值在 min 和 max 之间的成员的数量。异常返回0
      */
-    public Long zcount(String key, double min, double max) {
+    public Long zcount(String key, double min, double max, int dbIndex) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             return jedis.zcount(key, min, max);
         } catch (Exception e) {
-
             log.error(e.getMessage());
             return 0L;
         } finally {
@@ -1640,10 +1647,11 @@ public class RedisUtils {
      * @param increment
      * @return 执行 HINCRBY 命令之后，哈希表 key 中域 field的值。异常返回0
      */
-    public Long hincrBy(String key, String value, long increment) {
+    public Long hincrBy(String key, String value, long increment, int dbIndex) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             return jedis.hincrBy(key, value, increment);
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -1663,14 +1671,14 @@ public class RedisUtils {
      * @param members 可以使一个string 也可以是一个string数组
      * @return
      */
-    public Long zrem(String key, String... members) {
+    public Long zrem(String key, int dbIndex, String... members) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.zrem(key, members);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1688,14 +1696,14 @@ public class RedisUtils {
      * @param member
      * @return
      */
-    public Double zincrby(String key, double score, String member) {
+    public Double zincrby(String key, double score, String member, int dbIndex) {
         Jedis jedis = null;
         Double res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.zincrby(key, score, member);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1715,14 +1723,14 @@ public class RedisUtils {
      * @param member
      * @return
      */
-    public Long zrank(String key, String member) {
+    public Long zrank(String key, String member, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.zrank(key, member);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1742,14 +1750,14 @@ public class RedisUtils {
      * @param member
      * @return
      */
-    public Long zrevrank(String key, String member) {
+    public Long zrevrank(String key, String member, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.zrevrank(key, member);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1773,14 +1781,14 @@ public class RedisUtils {
      * @param end
      * @return
      */
-    public Set<String> zrevrange(String key, long start, long end) {
+    public Set<String> zrevrange(String key, long start, long end, int dbIndex) {
         Jedis jedis = null;
         Set<String> res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.zrevrange(key, start, end);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1798,14 +1806,14 @@ public class RedisUtils {
      * @param min
      * @return
      */
-    public Set<String> zrangebyscore(String key, String max, String min) {
+    public Set<String> zrangebyscore(String key, String max, String min, int dbIndex) {
         Jedis jedis = null;
         Set<String> res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.zrevrangeByScore(key, max, min);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1823,14 +1831,14 @@ public class RedisUtils {
      * @param min
      * @return
      */
-    public Set<String> zrangeByScore(String key, double max, double min) {
+    public Set<String> zrangeByScore(String key, double max, double min, int dbIndex) {
         Jedis jedis = null;
         Set<String> res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.zrevrangeByScore(key, max, min);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1848,14 +1856,14 @@ public class RedisUtils {
      * @param max
      * @return
      */
-    public Long zcount(String key, String min, String max) {
+    public Long zcount(String key, String min, String max, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.zcount(key, min, max);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1871,14 +1879,14 @@ public class RedisUtils {
      * @param key
      * @return
      */
-    public Long zcard(String key) {
+    public Long zcard(String key, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.zcard(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1895,14 +1903,14 @@ public class RedisUtils {
      * @param member
      * @return
      */
-    public Double zscore(String key, String member) {
+    public Double zscore(String key, String member, int dbIndex) {
         Jedis jedis = null;
         Double res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.zscore(key, member);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1920,14 +1928,14 @@ public class RedisUtils {
      * @param end
      * @return
      */
-    public Long zremrangeByRank(String key, long start, long end) {
+    public Long zremrangeByRank(String key, long start, long end, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.zremrangeByRank(key, start, end);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1945,14 +1953,14 @@ public class RedisUtils {
      * @param end
      * @return
      */
-    public Long zremrangeByScore(String key, double start, double end) {
+    public Long zremrangeByScore(String key, double start, double end, int dbIndex) {
         Jedis jedis = null;
         Long res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.zremrangeByScore(key, start, end);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1974,14 +1982,14 @@ public class RedisUtils {
      * @param pattern
      * @return
      */
-    public Set<String> keys(String pattern) {
+    public Set<String> keys(String pattern, int dbIndex) {
         Jedis jedis = null;
         Set<String> res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.keys(pattern);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -1989,15 +1997,14 @@ public class RedisUtils {
         return res;
     }
 
-    public Set<String> keysBySelect(String pattern, int database) {
+    public Set<String> keysBySelect(String pattern, int dbIndex) {
         Jedis jedis = null;
         Set<String> res = null;
         try {
             jedis = jedisPool.getResource();
-            jedis.select(database);
+            jedis.select(dbIndex);
             res = jedis.keys(pattern);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
@@ -2014,14 +2021,14 @@ public class RedisUtils {
      * @param key
      * @return
      */
-    public String type(String key) {
+    public String type(String key, int dbIndex) {
         Jedis jedis = null;
         String res = null;
         try {
             jedis = jedisPool.getResource();
+            jedis.select(dbIndex);
             res = jedis.type(key);
         } catch (Exception e) {
-
             log.error(e.getMessage());
         } finally {
             returnResource(jedisPool, jedis);
